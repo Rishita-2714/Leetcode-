@@ -1,0 +1,142 @@
+evaluate divison
+#define ALPHABET_SIZE 26
+#define NUMBER_SIZE   10
+#define NULL_VALUE    -1.0
+
+typedef struct Node{
+    char*        src;
+    char*        tgt;
+    double       val;
+    bool         visit;
+    struct Node* next;
+}Node;
+
+typedef Node*  List;
+typedef Node** Graph;
+
+bool isNumbers(char c){
+    return (c >= '0') && (c <= '9');
+}
+
+List addNodeToList(char* src, char* tgt, double val, List listHead){
+
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    int   srcLen = strlen(src);
+    int   tgtLen = strlen(tgt);
+
+    newNode->src = (char*)calloc(srcLen + 1, sizeof(char));
+    memcpy(newNode->src, src, srcLen * sizeof(char));
+    
+    newNode->tgt = (char*)calloc(tgtLen + 1, sizeof(char));
+    memcpy(newNode->tgt, tgt, tgtLen * sizeof(char));
+
+    newNode->val   = val;
+    newNode->next  = listHead;
+    newNode->visit = false;
+
+    return newNode;
+
+}
+
+// | ALPHABET | NUMBERS |
+Graph createGraph(char*** equations, int equationsSize, double* quotients){
+
+    Graph g = (Graph)calloc(ALPHABET_SIZE + NUMBER_SIZE, sizeof(List));
+
+    for(int i = 0; i < equationsSize; i++){
+
+        char*  divisor  = equations[i][0];
+        char*  dividend = equations[i][1];
+        double quotient = quotients[i];
+
+        int divisorID  = isNumbers(*divisor) ? (*divisor  - '0' + ALPHABET_SIZE): (*divisor  -'a');
+        int dividendID = isNumbers(*dividend)? (*dividend - '0' + ALPHABET_SIZE): (*dividend -'a');
+
+        g[divisorID]  = addNodeToList(divisor , dividend, quotient , g[divisorID]);
+        g[dividendID] = addNodeToList(dividend, divisor, 1/quotient, g[dividendID]);
+
+    }
+
+    return g;
+
+}
+
+bool isVariableValid(char* var, Graph graph){
+
+    int varListID  = isNumbers(*var) ? (*var - '0' + ALPHABET_SIZE): (*var - 'a');
+
+    Node* curr = graph[varListID];
+
+    while(curr){
+        if(!strcmp(curr->src, var)){
+            return true;
+        }
+        curr = curr->next;
+    }
+
+    return false;
+
+}
+
+double solveEquation(char* divisor, char* dividend, Graph graph, double product){
+
+    if(!strcmp(divisor, dividend)){
+        return product;
+    }
+
+    int listID = isNumbers(*divisor)? (*divisor - '0' + ALPHABET_SIZE): (*divisor - 'a');
+
+    Node* curr = graph[listID];
+    while(curr){
+        if(!curr->visit && !strcmp(divisor, curr->src)){
+            curr->visit = true;
+            double res = solveEquation(curr->tgt, dividend, graph, product * curr->val);
+            if(res != NULL_VALUE){
+                return res;
+            }
+        }
+        curr = curr->next;
+    }
+
+    return NULL_VALUE;
+
+}
+
+void clearViistRecordInGraph(Graph graph){
+
+    for(int i = 0; i < ALPHABET_SIZE + NUMBER_SIZE; i++){
+        List list = graph[i];
+        if(list){
+            Node* n = list;
+            while(n){
+                n->visit = false;
+                n = n->next;
+            }
+        }
+    }    
+
+}
+double* calcEquation(char*** equations, int equationsSize, int* equationsColSize, double* values, int valuesSize, char*** queries, int queriesSize, int* queriesColSize, int* returnSize) {
+    double* ans = (double*)calloc(queriesSize, sizeof(double));
+
+    Graph graph = createGraph(equations, equationsSize, values);
+
+    for(int i = 0; i < queriesSize; i++){
+
+        clearViistRecordInGraph(graph);
+
+        char*  divisor  = queries[i][0];
+        char*  dividend = queries[i][1];
+        
+        double quotient = NULL_VALUE;
+        if(isVariableValid(divisor, graph) && isVariableValid(dividend, graph)){
+            quotient = solveEquation(divisor, dividend, graph, 1.0);
+        }
+
+        ans[i] = quotient;
+        
+    }
+
+    *returnSize = queriesSize;
+    return ans;
+}
