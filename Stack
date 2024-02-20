@@ -1,0 +1,48 @@
+Next greater node in linked list
+int* nextLargerNodes(struct ListNode* head, int* returnSize) {
+    int count(struct ListNode* head)
+        {
+            struct ListNode* current = head;
+            
+        
+            int count = 0;
+            while (current != NULL) {
+                count++;
+                current = current->next;
+            }
+            return count ; 
+        }
+
+
+   
+     int nb = count(head) ,  i = 0    , * result = (int *)malloc(sizeof(int )* nb); 
+      *returnSize = nb  ;
+       
+     struct ListNode* current = head ;  
+
+    while(current -> next  != NULL ) 
+    {
+        struct ListNode* runner = current -> next ;
+        while(runner != NULL && runner -> val <= current -> val )
+            {
+                runner = runner -> next ; 
+
+            }
+        if (runner != NULL)
+            {
+                result[i] = runner -> val ; 
+            
+            }
+        else
+            {
+                result[i] = 0 ; 
+            }
+
+        i++;
+        current = current -> next ;
+    }
+    result[i]=0;
+
+    return  result ; 
+    
+}
