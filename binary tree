@@ -1,0 +1,26 @@
+Balanced binary tree
+#include <stdlib.h>
+ int balance(struct TreeNode *th )
+ {
+    if(th == NULL)
+        return 0;
+    int lb = balance(th->left);
+    int rb = balance(th->right);
+    int temp = lb - rb;
+    if(lb == -1 || rb == -1)
+        return -1;
+    if(abs(lb - rb) > 1)
+        return -1;
+    if(lb > rb)
+        return lb + 1;
+    else 
+        return rb + 1;
+
+ }
+bool isBalanced(struct TreeNode* root) {
+     int result = balance(root);
+    if(result == -1)
+        return false;
+    else 
+        return true;
+}
