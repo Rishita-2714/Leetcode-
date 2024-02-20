@@ -1,0 +1,64 @@
+STACK:
+Problem Statement:Daily temperatures
+Given an array of integers temperatures represents the daily temperatures, return an array answer such that answer[i] is the number of days you have to wait after the ith day to get a warmer temperature. If there is no future day for which this is possible, keep answer[i] == 0 instead.
+Example 1:
+Input: temperatures = [73,74,75,71,69,72,76,73]Output: [1,1,4,2,1,1,0,0]
+Example 2:
+Input: temperatures = [30,40,50,60]Output: [1,1,1,0]
+Example 3:
+Input: temperatures = [30,60,90]Output: [1,1,0]
+Constraints:
+    • 1 <= temperatures.length <= 105
+    • 30 <= temperatures[i] <= 100
+CODE:
+#include <stdlib.h>
+
+typedef struct {
+    int temperature;
+    int index;
+} Pair;
+typedef struct {
+    Pair *array;
+    int capacity;
+    int size;
+} Stack;
+Stack* createStack(int capacity) {
+    Stack* stack = (Stack*)malloc(sizeof(Stack));
+    stack->capacity = capacity;
+    stack->size = 0;
+    stack->array = (Pair*)malloc(stack->capacity * sizeof(Pair));
+    return stack;
+}
+void push(Stack* stack, Pair item) {
+    stack->array[stack->size++] = item;
+}
+Pair pop(Stack* stack) {
+    return stack->array[--stack->size];
+}
+int isEmpty(Stack* stack) {
+    return stack->size == 0;
+}
+int* dailyTemperatures(int* temperatures, int temperaturesSize, int* returnSize) {
+    *returnSize = temperaturesSize;
+    int* answer = (int*)malloc(temperaturesSize * sizeof(int));
+    
+    Stack* stack = createStack(temperaturesSize);
+    
+    for (int i = 0; i < temperaturesSize; ++i) {
+        while (!isEmpty(stack) && temperatures[i] > stack->array[stack->size - 1].temperature) {
+            Pair top = pop(stack);
+            answer[top.index] = i - top.index;
+        }
+        Pair p = {temperatures[i], i};
+        push(stack, p);
+    }
+    
+    while (!isEmpty(stack)) {
+        Pair top = pop(stack);
+        answer[top.index] = 0;
+    }
+    
+    free(stack->array);
+free(stack);
+    return answer;
+}
